@@ -8,6 +8,7 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
     <AssemblyName>Nook</AssemblyName>
     <RootNamespace>Nook</RootNamespace>
     <Version>1.1.0</Version>
@@ -24,5 +25,11 @@
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Embutidos: tray carrega icon.ico; logo.png ilustra header/círculo/Sobre. -->
+    <Resource Include="icon.ico" />
+    <Resource Include="logo.png" />
+  </ItemGroup>
 
 </Project>

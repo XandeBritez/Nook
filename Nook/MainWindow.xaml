@@ -80,15 +80,21 @@
                     BorderBrush="{DynamicResource NookCardBorder}" BorderThickness="1">
             <StackPanel x:Name="ExpandedContent" Margin="8,8,8,8">
                 <DockPanel Margin="0,0,0,5">
-                    <TextBlock Text="⚡ NOOK" Foreground="{DynamicResource NookFg}" FontWeight="Bold"
-                               FontSize="11" VerticalAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Image Source="pack://application:,,,/logo.png" Width="14" Height="14"
+                               VerticalAlignment="Center" Margin="0,1,4,-1"/>
+                        <TextBlock Text="NOOK" Foreground="{DynamicResource NookFg}" FontWeight="Bold"
+                                   FontSize="11" VerticalAlignment="Center"/>
+                    </StackPanel>
                     <Button x:Name="PinButton" Content="📌" Width="22" Height="20"
                             DockPanel.Dock="Right" Background="Transparent"
                             Foreground="{DynamicResource NookFg}" BorderThickness="0" Cursor="Hand"
+                            Padding="0,0,0,2"
                             FontSize="11" ToolTip="Fixar aberto" Click="PinButton_Click"/>
                     <Button x:Name="GearButton" Content="⚙️" Width="22" Height="20"
                             DockPanel.Dock="Right" Background="Transparent"
                             Foreground="{DynamicResource NookFg}" BorderThickness="0" Cursor="Hand"
+                            Padding="0,0,0,2"
                             FontSize="11" ToolTip="Editar atalhos" Click="GearButton_Click"/>
                 </DockPanel>
 
@@ -158,8 +164,10 @@
             <Button x:Name="CollapsedTab" Width="34" Height="34"
                     HorizontalAlignment="Right" VerticalAlignment="Bottom"
                     Background="Transparent" BorderThickness="0" Cursor="Hand"
-                    Foreground="{DynamicResource NookFg}" FontSize="15" Content="⚡"
                     ToolTip="Passe o mouse para abrir o Nook">
+                <Button.Content>
+                    <Image Source="pack://application:,,,/logo.png" Width="20" Height="20"/>
+                </Button.Content>
                 <Button.Template>
                     <ControlTemplate TargetType="Button">
                         <Grid>

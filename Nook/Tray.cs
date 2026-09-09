@@ -20,7 +20,7 @@ internal sealed class Tray : IDisposable
         _icon = new WinForms.NotifyIcon
         {
             Text = "Nook — atalhos",
-            Icon = BuildNookIcon(),
+            Icon = LoadAppIcon(),
             Visible = true,
         };
         _icon.DoubleClick += (_, _) => OpenRequested?.Invoke();
@@ -58,54 +58,20 @@ internal sealed class Tray : IDisposable
         _icon.ContextMenuStrip = menu;
     }
 
-    /// <summary>Ícone próprio do Nook (raio ⚡ num círculo escuro), gerado em runtime.</summary>
-    private static Icon BuildNookIcon()
+    /// <summary>Ícone oficial (icon.ico embutido). Fallback: ícone padrão.</summary>
+    private static Icon LoadAppIcon()
     {
         try
         {
-            const int s = 32;
-            using var bmp = new Bitmap(s, s, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-            using (var g = Graphics.FromImage(bmp))
+            var stream = System.Windows.Application.GetResourceStream(
+                new Uri("pack://application:,,,/icon.ico"))?.Stream;
+            if (stream != null)
             {
-                g.Clear(Color.Transparent);
-                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-                g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
-                using (var bg = new SolidBrush(Color.FromArgb(0x1E, 0x1E, 0x1E)))
-                    g.FillEllipse(bg, 0, 0, s - 1, s - 1);
-                using (var border = new Pen(Color.FromArgb(0x66, 0xFF, 0xFF, 0xFF)))
-                    g.DrawEllipse(border, 0, 0, s - 1, s - 1);
-                using var font = new Font(GetEmojiFont(), 19, FontStyle.Regular, GraphicsUnit.Pixel);
-                using var fg = new SolidBrush(Color.FromArgb(0xFF, 0xD7, 0x00));
-                var size = g.MeasureString("⚡", font);
-                g.DrawString("⚡", font, fg,
-                    (s - size.Width) / 2, (s - size.Height) / 2 - 1);
+                using (stream) return new Icon(stream);
             }
-            IntPtr h = bmp.GetHicon();
-            try
-            {
-                using var tmp = Icon.FromHandle(h);
-                return (Icon)tmp.Clone(); // clona: o handle original é destruído abaixo
-            }
-            finally { Native.DestroyIcon(h); }
         }
-        catch
-        {
-            return SystemIcons.Application; // fallback: nunca quebrar o tray
-        }
-    }
-
-    private static string GetEmojiFont()
-    {
-        foreach (string name in new[] { "Segoe UI Emoji", "Segoe UI Symbol" })
-        {
-            try
-            {
-                using var f = new FontFamily(name);
-                return name;
-            }
-            catch { /* tenta a próxima */ }
-        }
-        return "Arial";
+        catch { /* cai para o fallback */ }
+        return SystemIcons.Application; // nunca quebra o tray
     }
 
     public void RefreshAutostart() => _autostartItem.Checked = Autostart.IsEnabled();

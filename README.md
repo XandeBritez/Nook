@@ -6,7 +6,7 @@
 
 **Seu cantinho na tela.** O Nook é um cartão flutuante que mora no canto do monitor com seus atalhos, monitor do PC, pomodoro, histórico da área de transferência e turbo — tudo sem pedir permissão de administrador. Passe o mouse e ele abre; tire o mouse e ele some.
 
-![Nook](./image.png)
+<img src="./Nook/logo.png" width="160" alt="Nook">
 
 ## ✨ Recursos
 

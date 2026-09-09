@@ -57,10 +57,6 @@ internal static class Native
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool LockWorkStation();
 
-    [DllImport("user32.dll", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    public static extern bool DestroyIcon(IntPtr hIcon);
-
     // ---------- Fase 1: ações de sistema (tudo user-space, sem UAC) ----------
 
     public const byte VK_VOLUME_MUTE = 0xAD;
