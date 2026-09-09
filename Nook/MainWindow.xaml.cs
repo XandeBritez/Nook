@@ -610,6 +610,17 @@ public partial class MainWindow : Window
             Actions.Launch(s);
     }
 
+    /// <summary>Botão direito num atalho → remove (com confirmação). Espelha o － do editor.</summary>
+    private void RemoveShortcut_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as System.Windows.Controls.MenuItem)?.Tag is not Shortcut s) return;
+        if (!_shortcuts.Contains(s)) return;
+        if (!Dialogs.Confirm($"Remover o botão '{s.Name}'?", "Nook")) return;
+        _shortcuts.Remove(s);
+        try { ShortcutStore.Save(_shortcuts); } catch { /* roda em memória */ }
+        UpdatePagedView(); // re-clampa a página e redesenha
+    }
+
     private void PinButton_Click(object sender, RoutedEventArgs e)
     {
         _pinned = !_pinned;

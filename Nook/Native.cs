@@ -67,33 +67,30 @@ internal static class Native
 
     private const uint INPUT_KEYBOARD = 1;
 
-    [StructLayout(LayoutKind.Sequential)]
-    private struct KEYBDINPUT
-    {
-        public ushort wVk;
-        public ushort wScan;
-        public uint dwFlags;
-        public uint time;
-        public UIntPtr dwExtraInfo;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
+    // Layout exato do INPUT do Win32 no x64 (40 bytes: a união interna tem o
+    // tamanho do MOUSEINPUT). Sequential daria 32 e o SendInput rejeita.
+    [StructLayout(LayoutKind.Explicit, Size = 40)]
     private struct INPUT
     {
-        public uint type;
-        public KEYBDINPUT ki;
+        [FieldOffset(0)] public uint type;
+        [FieldOffset(8)] public ushort wVk;
+        [FieldOffset(10)] public ushort wScan;
+        [FieldOffset(12)] public uint dwFlags;
+        [FieldOffset(16)] public uint time;
+        [FieldOffset(24)] public UIntPtr dwExtraInfo;
     }
 
     [DllImport("user32.dll", SetLastError = true)]
     private static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);
 
-    /// <summary>Simula toque numa tecla multimídia (mudo / vol+ / vol-).</summary>
+    /// <summary>Simula toque numa tecla multimídia (mudo / vol+ / vol-).
+    /// Teclas multimídia exigem KEYEVENTF_EXTENDEDKEY.</summary>
     public static void TapMediaKey(byte vk)
     {
         var inputs = new[]
         {
-            new INPUT { type = INPUT_KEYBOARD, ki = new KEYBDINPUT { wVk = vk } },
-            new INPUT { type = INPUT_KEYBOARD, ki = new KEYBDINPUT { wVk = vk, dwFlags = KEYEVENTF_KEYUP } },
+            new INPUT { type = INPUT_KEYBOARD, wVk = vk, dwFlags = KEYEVENTF_EXTENDEDKEY },
+            new INPUT { type = INPUT_KEYBOARD, wVk = vk, dwFlags = KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP },
         };
         SendInput((uint)inputs.Length, inputs, Marshal.SizeOf<INPUT>());
     }

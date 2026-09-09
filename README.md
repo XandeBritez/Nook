@@ -34,6 +34,7 @@
 | Fixar aberto | 📌 no topo do cartão |
 | Editar botões | ⚙️ no topo do cartão (ou menu do tray) |
 | Adicionar programa | Arraste o `.exe`/atalho para cima do cartão |
+| Remover botão | Clique direito no botão → Remover (ou botão － no editor) |
 | Paginar (modos 1x/2x) | Clique em ◀ ▶ abaixo do botão Sair |
 | Sobre / versão / licença | Aba **Sobre** nas configurações (ou menu do tray) |
 
