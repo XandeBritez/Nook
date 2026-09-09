@@ -1,4 +1,4 @@
-<img src="./Nook/logo.png" width="160" alt="Nook">
+<img src="./logo.png" width="160" alt="Nook">
 
 # Nook
 
