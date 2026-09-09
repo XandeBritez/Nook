@@ -1,0 +1,184 @@
+﻿<Window x:Class="Nook.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Nook" Width="112" SizeToContent="Height"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        Topmost="True" ShowInTaskbar="False" ResizeMode="NoResize"
+        ShowActivated="False" Top="800" Left="1500">
+    <Window.Resources>
+        <!-- Paleta do tema: trocada em tempo real via ApplySettings (DynamicResource). -->
+        <SolidColorBrush x:Key="NookCardBg" Color="#CC1E1E1E"/>
+        <SolidColorBrush x:Key="NookCardBorder" Color="#33FFFFFF"/>
+        <SolidColorBrush x:Key="NookBtnBg" Color="#2D2D30"/>
+        <SolidColorBrush x:Key="NookBtnHover" Color="#3E3E42"/>
+        <SolidColorBrush x:Key="NookBtnPressed" Color="#007ACC"/>
+        <SolidColorBrush x:Key="NookFg" Color="White"/>
+        <Style x:Key="NookButton" TargetType="Button">
+            <Setter Property="Background" Value="{DynamicResource NookBtnBg}"/>
+            <Setter Property="Foreground" Value="{DynamicResource NookFg}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="6,6"/>
+            <Setter Property="Margin" Value="0,2"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{DynamicResource NookBtnHover}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="{DynamicResource NookBtnPressed}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- 1 coluna: ícone + nome. 2 colunas: só ícone (tooltip mostra o nome). -->
+        <DataTemplate x:Key="ListButtonTemplate">
+            <Button Style="{StaticResource NookButton}" Margin="0,2"
+                    ToolTip="{Binding Tooltip}"
+                    Click="ShortcutButton_Click"
+                    Tag="{Binding}">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock Text="{Binding Icon}" FontSize="13" Margin="0,0,5,0"
+                               VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding Name}" FontSize="11"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+        </DataTemplate>
+        <DataTemplate x:Key="GridButtonTemplate">
+            <Button Style="{StaticResource NookButton}" Margin="2"
+                    ToolTip="{Binding Tooltip}"
+                    Click="ShortcutButton_Click"
+                    Tag="{Binding}">
+                <TextBlock Text="{Binding Icon}" FontSize="18"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Button>
+        </DataTemplate>
+        <ItemsPanelTemplate x:Key="Grid1Col">
+            <UniformGrid Columns="1"/>
+        </ItemsPanelTemplate>
+        <ItemsPanelTemplate x:Key="Grid2Col">
+            <UniformGrid Columns="2"/>
+        </ItemsPanelTemplate>
+    </Window.Resources>
+
+    <!-- Cartão flutuante compacto no canto inferior direito -->
+    <Border x:Name="Panel" Background="Transparent"
+            AllowDrop="True" DragOver="Panel_DragOver" Drop="Panel_Drop"
+            MouseEnter="Panel_MouseEnter" MouseLeave="Panel_MouseLeave">
+        <Grid>
+            <!-- Conteúdo expandido -->
+            <Border x:Name="Card" Background="{DynamicResource NookCardBg}" CornerRadius="12"
+                    BorderBrush="{DynamicResource NookCardBorder}" BorderThickness="1">
+            <StackPanel x:Name="ExpandedContent" Margin="8,8,8,8">
+                <DockPanel Margin="0,0,0,5">
+                    <TextBlock Text="⚡ NOOK" Foreground="{DynamicResource NookFg}" FontWeight="Bold"
+                               FontSize="11" VerticalAlignment="Center"/>
+                    <Button x:Name="PinButton" Content="📌" Width="22" Height="20"
+                            DockPanel.Dock="Right" Background="Transparent"
+                            Foreground="{DynamicResource NookFg}" BorderThickness="0" Cursor="Hand"
+                            FontSize="11" ToolTip="Fixar aberto" Click="PinButton_Click"/>
+                    <Button x:Name="GearButton" Content="⚙️" Width="22" Height="20"
+                            DockPanel.Dock="Right" Background="Transparent"
+                            Foreground="{DynamicResource NookFg}" BorderThickness="0" Cursor="Hand"
+                            FontSize="11" ToolTip="Editar atalhos" Click="GearButton_Click"/>
+                </DockPanel>
+
+                <ItemsControl x:Name="ShortcutList"
+                              ItemTemplate="{StaticResource ListButtonTemplate}"
+                              ItemsPanel="{StaticResource Grid1Col}"/>
+
+                <Button Content="Sair" Style="{StaticResource NookButton}"
+                        Opacity="0.6" FontSize="11" Click="ExitButton_Click"/>
+
+                <!-- Paginação do modo 1 linha (Columns=3): visível só quando há 2+ páginas -->
+                <StackPanel x:Name="PagerRow" Orientation="Horizontal"
+                            HorizontalAlignment="Center" Margin="0,2,0,0"
+                            Visibility="Collapsed">
+                    <Button x:Name="PrevPageBtn" Content="◀" Style="{StaticResource NookButton}"
+                            Width="28" FontSize="11" ToolTip="Página anterior"
+                            Click="PrevPage_Click"/>
+                    <TextBlock x:Name="PageLabel" Text="1/1" FontSize="10"
+                               Foreground="{DynamicResource NookFg}" Opacity="0.8"
+                               VerticalAlignment="Center" Margin="6,0"/>
+                    <Button x:Name="NextPageBtn" Content="▶" Style="{StaticResource NookButton}"
+                            Width="28" FontSize="11" ToolTip="Próxima página"
+                            Click="NextPage_Click"/>
+                </StackPanel>
+
+                <!-- Monitor + turbo -->
+                <StackPanel Margin="0,6,0,0">
+                    <DockPanel>
+                        <TextBlock Text="CPU" FontSize="10"
+                                   Foreground="{DynamicResource NookFg}" Opacity="0.8"/>
+                        <TextBlock x:Name="CpuLabel" Text="–" FontSize="10"
+                                   Foreground="{DynamicResource NookFg}" Opacity="0.8"
+                                   HorizontalAlignment="Right"/>
+                    </DockPanel>
+                    <ProgressBar x:Name="CpuBar" Height="5" Minimum="0" Maximum="100"
+                                 Margin="0,1,0,4"/>
+                    <DockPanel>
+                        <TextBlock Text="RAM" FontSize="10"
+                                   Foreground="{DynamicResource NookFg}" Opacity="0.8"/>
+                        <TextBlock x:Name="RamLabel" Text="–" FontSize="10"
+                                   Foreground="{DynamicResource NookFg}" Opacity="0.8"
+                                   HorizontalAlignment="Right"/>
+                    </DockPanel>
+                    <ProgressBar x:Name="RamBar" Height="5" Minimum="0" Maximum="100"
+                                 Margin="0,1,0,4"/>
+                    <Button Content="🚀 Turbo" Style="{StaticResource NookButton}"
+                            FontSize="11" ToolTip="Encerrar helpers e compactar RAM"
+                            Click="TurboButton_Click"/>
+                    <Button x:Name="ClipsButton" Content="📋 Clips" Style="{StaticResource NookButton}"
+                            FontSize="11" ToolTip="Histórico da área de transferência"
+                            Click="ClipsButton_Click"/>
+                    <StackPanel x:Name="PomoRow" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,2,0,0">
+                        <TextBlock x:Name="PomoLabel" Text="🍅 25:00" FontSize="11"
+                                   Foreground="{DynamicResource NookFg}"
+                                   VerticalAlignment="Center" Margin="0,0,6,0"
+                                   ToolTip="Pomodoro — clique para zerar"
+                                   MouseDown="PomoLabel_Reset"/>
+                        <Button x:Name="PomoButton" Content="▶" Width="34"
+                                Style="{StaticResource NookButton}" FontSize="11"
+                                ToolTip="Iniciar/pausar" Click="PomoButton_Click"/>
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+            </Border>
+
+            <!-- Aba colapsada: círculo perfeito no canto -->
+            <Button x:Name="CollapsedTab" Width="34" Height="34"
+                    HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                    Background="Transparent" BorderThickness="0" Cursor="Hand"
+                    Foreground="{DynamicResource NookFg}" FontSize="15" Content="⚡"
+                    ToolTip="Passe o mouse para abrir o Nook">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Ellipse x:Name="Circle" Fill="{DynamicResource NookCardBg}"
+                                     Stroke="{DynamicResource NookCardBorder}" StrokeThickness="1"/>
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Circle" Property="Fill" Value="{DynamicResource NookBtnHover}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Circle" Property="Fill" Value="{DynamicResource NookBtnPressed}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+        </Grid>
+    </Border>
+</Window>

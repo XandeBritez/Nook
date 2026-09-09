@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AssemblyName>Nook</AssemblyName>
+    <RootNamespace>Nook</RootNamespace>
+    <Version>1.1.0</Version>
+    <Authors>Alexandre Britez Borsuka</Authors>
+    <Description>Nook — seu cantinho na tela: atalhos, monitor do PC, pomodoro, clips e turbo.</Description>
+    <Copyright>Copyright (c) 2026 Alexandre Britez Borsuka (MIT)</Copyright>
+    <!-- publish padrao: framework-dependent (leve, abre instantaneo).
+         Use .\publish.ps1 (ele fecha o app, publica e reinicia). -->
+    <!-- WFO0003 suprimido de propósito: o app é WPF-first e o manifest
+         é a fonte da verdade do DPI (vale p/ WPF + WinForms do tray).
+         A alternativa do aviso (SetHighDpiMode) é só-WinForms. -->
+    <NoWarn>$(NoWarn);WFO0003</NoWarn>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+
+</Project>

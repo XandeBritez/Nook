@@ -1,0 +1,15 @@
+# Build outputs
+[Bb]in/
+[Oo]bj/
+
+# Publish local (exe + seus jsons pessoais)
+Nook/publish/
+
+# Logs locais
+*crash.log
+
+# VS / OS
+.vs/
+.vscode/
+Desktop.ini
+Thumbs.db
