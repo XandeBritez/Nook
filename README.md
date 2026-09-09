@@ -1,12 +1,12 @@
-# ⚡ Nook
+<img src="./Nook/logo.png" width="160" alt="Nook">
+
+# Nook
 
 [![Windows](https://img.shields.io/badge/Windows-10%2F11-blue?logo=windows)](https://github.com/XandeBritez/Nook)
 [![.NET](https://img.shields.io/badge/.NET-10%20Desktop-512BD4?logo=dotnet)](https://dotnet.microsoft.com/download)
 [![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-green)](./LICENSE)
 
 **Seu cantinho na tela.** O Nook é um cartão flutuante que mora no canto do monitor com seus atalhos, monitor do PC, pomodoro, histórico da área de transferência e turbo — tudo sem pedir permissão de administrador. Passe o mouse e ele abre; tire o mouse e ele some.
-
-<img src="./Nook/logo.png" width="160" alt="Nook">
 
 ## ✨ Recursos
 
