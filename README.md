@@ -9,7 +9,7 @@
 **Seu cantinho na tela.** O Nook é um cartão flutuante que mora no canto do monitor com seus atalhos, monitor do PC, pomodoro, histórico da área de transferência e turbo — tudo sem pedir permissão de administrador. Passe o mouse e ele abre; tire o mouse e ele some.
 
 <p>
-  <img src="./screenshots/expandido.png" width="150" alt="Nook expandido, com os botões de atalho">
+  <img src="./screenshots/modo-lista.png" width="150" alt="Nook expandido, modo lista (ícone + nome)">
   <img src="./screenshots/colapsado.png" width="150" alt="Nook colapsado, só o círculo no canto da tela">
 </p>
 
@@ -17,6 +17,14 @@
 
 - **Botões do seu jeito** — arraste `.exe`/`.lnk`/`.bat` para cima do cartão e vira botão; editor visual com nome, ícone (emoji), tooltip e ações embutidas.
 - **4 modos de grade** — 1 coluna (ícone + nome), 2 colunas (só ícones), **1x** e **2x paginados** com setas ◀ ▶ (8 ou 16 por página).
+
+  <p>
+    <img src="./screenshots/modo-lista.png" width="130" alt="Modo 1 coluna: ícone + nome">
+    <img src="./screenshots/modo-grade.png" width="130" alt="Modo 2 colunas: só ícones">
+    <img src="./screenshots/modo-1x-paginado.png" width="130" alt="Modo 1x paginado com setas">
+    <img src="./screenshots/modo-2x-paginado.png" width="130" alt="Modo 2x paginado com setas">
+  </p>
+
 - **📸 Print → Paint** — captura todas as telas em PNG e abre direto no Paint.
 - **📋 Clips** — histórico dos últimos 25 textos copiados, com busca (opcional: manter ao sair).
 - **🍅 Pomodoro** — foco/pausa configuráveis, com aviso no tray e som.
