@@ -34,8 +34,8 @@ public static class Hotkey
 
         try
         {
-            var key = (Key)new KeyConverter().ConvertFromString(parts[^1]);
-            if (key == Key.None) return false;
+            if (new KeyConverter().ConvertFromString(parts[^1]) is not Key key || key == Key.None)
+                return false;
             int v = KeyInterop.VirtualKeyFromKey(key);
             if (v <= 0 || v > 255) return false;
             vk = (uint)v;

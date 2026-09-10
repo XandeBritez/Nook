@@ -141,7 +141,8 @@ public partial class MainWindow : Window
     /// <summary>Troca o atalho global. Retorna null se ok ou a mensagem de erro.</summary>
     public string? TrySetHotkey(string spec)
     {
-        if (!Hotkey.TryParse(spec?.Trim(), out uint mod, out uint vk))
+        string trimmed = spec.Trim();
+        if (!Hotkey.TryParse(trimmed, out uint mod, out uint vk))
             return "Formato inválido. Use algo como Ctrl+Alt+H (com ao menos um modificador).";
         if (_hwnd != IntPtr.Zero)
         {
@@ -154,7 +155,7 @@ public partial class MainWindow : Window
                 return "Este atalho já está em uso por outro programa.";
             _hotkeyRegistered = true;
         }
-        _settings.Hotkey = spec.Trim();
+        _settings.Hotkey = trimmed;
         try { _settings.Save(); } catch { /* roda em memória */ }
         return null;
     }
