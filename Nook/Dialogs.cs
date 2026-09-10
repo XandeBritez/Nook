@@ -18,4 +18,9 @@ internal static class Dialogs
         System.Windows.MessageBox.Show(text, title,
             System.Windows.MessageBoxButton.OK,
             System.Windows.MessageBoxImage.Warning);
+
+    public static void Error(string text, string title = "Nook") =>
+        System.Windows.MessageBox.Show(text, title,
+            System.Windows.MessageBoxButton.OK,
+            System.Windows.MessageBoxImage.Error);
 }

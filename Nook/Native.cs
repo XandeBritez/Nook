@@ -5,7 +5,7 @@ namespace Nook;
 /// <summary>Win32 interop para overlay TOPMOST sem foco.</summary>
 internal static class Native
 {
-    public static readonly IntPtr HWND_TOPMOST = new(-1);
+    private static readonly IntPtr HWND_TOPMOST = new(-1);
 
     public const int GWL_EXSTYLE = -20;
     public const int WS_EX_NOACTIVATE = 0x08000000;

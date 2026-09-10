@@ -8,7 +8,7 @@ namespace Nook;
 internal static class ProcessLauncher
 {
     /// <summary>Tenta iniciar. Retorna false (sem throw) se falhar.</summary>
-    public static bool TryStart(ProcessStartInfo psi)
+    private static bool TryStart(ProcessStartInfo psi)
     {
         try
         {

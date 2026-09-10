@@ -17,6 +17,19 @@ public sealed class Shortcut
     /// Nulo = lançar FileName.</summary>
     public string? Builtin { get; set; }
     public string? Tooltip { get; set; }
+
+    /// <summary>Cópia profunda (FallbackPaths incluso) — usada para working copies e testes.</summary>
+    public Shortcut Clone() => new()
+    {
+        Name = Name,
+        Icon = Icon,
+        FileName = FileName,
+        Arguments = Arguments,
+        WorkingDirectory = WorkingDirectory,
+        FallbackPaths = FallbackPaths?.ToList(),
+        Builtin = Builtin,
+        Tooltip = Tooltip,
+    };
 }
 
 internal static class ShortcutStore

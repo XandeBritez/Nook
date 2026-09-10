@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
-using MessageBox = System.Windows.MessageBox;
 
 namespace Nook;
 
@@ -30,18 +29,7 @@ public partial class SettingsWindow : Window
         InitializeComponent();
 
         // Cópia de trabalho: Cancelar descarta tudo.
-        _items = new ObservableCollection<Shortcut>(
-            current.Select(s => new Shortcut
-            {
-                Name = s.Name,
-                Icon = s.Icon,
-                FileName = s.FileName,
-                Arguments = s.Arguments,
-                WorkingDirectory = s.WorkingDirectory,
-                FallbackPaths = s.FallbackPaths?.ToList(),
-                Builtin = s.Builtin,
-                Tooltip = s.Tooltip,
-            }));
+        _items = new ObservableCollection<Shortcut>(current.Select(s => s.Clone()));
 
         BuiltinBox.ItemsSource = ShortcutStore.BuiltinOptions.Select(o => o.Label).ToList();
         IconBox.ItemsSource = EmojiGallery.All;
@@ -223,20 +211,14 @@ public partial class SettingsWindow : Window
     private void TestButton_Click(object sender, RoutedEventArgs e)
     {
         if (Selected is not { } s) return;
-        Actions.Launch(new Shortcut
-        {
-            Name = s.Name, Icon = s.Icon, FileName = s.FileName,
-            Arguments = s.Arguments, WorkingDirectory = s.WorkingDirectory,
-            FallbackPaths = s.FallbackPaths?.ToList(), Builtin = s.Builtin,
-        });
+        Actions.Launch(s.Clone());
     }
 
     private void SaveButton_Click(object sender, RoutedEventArgs e)
     {
         if (_items.Count == 0)
         {
-            MessageBox.Show("Adicione ao menos um botão.", "Nook",
-                MessageBoxButton.OK, MessageBoxImage.Warning);
+            Dialogs.Warn("Adicione ao menos um botão.");
             return;
         }
         foreach (var s in _items)
@@ -244,14 +226,12 @@ public partial class SettingsWindow : Window
             if (string.IsNullOrWhiteSpace(s.Icon)) s.Icon = "•";
             if (string.IsNullOrWhiteSpace(s.Name))
             {
-                MessageBox.Show("Todo botão precisa de um nome.", "Nook",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                Dialogs.Warn("Todo botão precisa de um nome.");
                 return;
             }
             if (string.IsNullOrWhiteSpace(s.Builtin) && string.IsNullOrWhiteSpace(s.FileName))
             {
-                MessageBox.Show($"O botão '{s.Name}' precisa de um programa ou ação.", "Nook",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                Dialogs.Warn($"O botão '{s.Name}' precisa de um programa ou ação.");
                 return;
             }
         }
@@ -261,8 +241,7 @@ public partial class SettingsWindow : Window
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Falha ao salvar:\n{ex.Message}", "Nook",
-                MessageBoxButton.OK, MessageBoxImage.Error);
+            Dialogs.Error($"Falha ao salvar:\n{ex.Message}");
             return;
         }
         DialogResult = true;
@@ -351,7 +330,7 @@ public partial class SettingsWindow : Window
         string? err = _tryHotkey(spec);
         if (err != null)
         {
-            MessageBox.Show(err, "Nook", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Dialogs.Warn(err);
             HotkeyBox.Text = _settings.Hotkey;
         }
         else
@@ -384,8 +363,7 @@ public partial class SettingsWindow : Window
         bool okB = int.TryParse(BreakBox.Text.Trim(), out int b);
         if (!okF || !okB)
         {
-            MessageBox.Show("Use minutos inteiros (foco 1–120, pausa 1–60).", "Nook",
-                MessageBoxButton.OK, MessageBoxImage.Warning);
+            Dialogs.Warn("Use minutos inteiros (foco 1–120, pausa 1–60).");
             FocusBox.Text = _settings.PomodoroFocusMin.ToString();
             BreakBox.Text = _settings.PomodoroBreakMin.ToString();
             return;

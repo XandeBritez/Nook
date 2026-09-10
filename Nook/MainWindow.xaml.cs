@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -21,9 +20,7 @@ public partial class MainWindow : Window
 
     private readonly DispatcherTimer _hoverTimer;
     private readonly DispatcherTimer _tickTimer; // 1s: monitor + pomodoro juntos
-    private string _pomoPhase = "idle"; // idle | focus | break
-    private int _pomoRemaining;
-    private bool _pomoRunning;
+    private readonly PomodoroService _pomodoro = new();
     private List<Shortcut> _shortcuts;
     private AppSettings _settings;
     private int _pageIndex; // página atual no modo 1 linha paginada (Columns=3)
@@ -48,6 +45,8 @@ public partial class MainWindow : Window
         _settings = settings;
         InitializeComponent();
         ShortcutList.ItemsSource = _shortcuts;
+        _pomodoro.Changed += UpdatePomoLabel;
+        _pomodoro.PhaseEnded += (title, text) => PomodoroNotify?.Invoke(title, text);
         ApplySettings(_settings);
 
         // Reancora só quando o tamanho muda de verdade (animação,
@@ -62,14 +61,13 @@ public partial class MainWindow : Window
             TimeSpan.FromSeconds(1),
             DispatcherPriority.Background,
             OnTick, Dispatcher);
-        _pomoRemaining = _settings.PomodoroFocusMin * 60;
     }
 
     /// <summary>Tick único de 1s: monitor (CPU/RAM) + pomodoro.</summary>
     private void OnTick(object? sender, EventArgs e)
     {
         OnMonitorTick(sender, e);
-        OnPomoTick(sender, e);
+        _pomodoro.Tick(_settings.PomodoroFocusMin, _settings.PomodoroBreakMin);
     }
 
     protected override void OnSourceInitialized(EventArgs e)
@@ -87,16 +85,19 @@ public partial class MainWindow : Window
         DockToCorner(collapsed: true);
         _hoverTimer.Start();
         _tickTimer.Start();
-        SystemEvents.DisplaySettingsChanged += (_, _) =>
-        {
-            Anchor();
-            if (_hwnd != IntPtr.Zero)
-                Native.KeepTopMost(_hwnd, (int)Left, (int)Top, (int)ActualWidth, (int)ActualHeight);
-        };
+        SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged;
+    }
+
+    private void OnDisplaySettingsChanged(object? sender, EventArgs e)
+    {
+        Anchor();
+        if (_hwnd != IntPtr.Zero)
+            Native.KeepTopMost(_hwnd, (int)Left, (int)Top, (int)ActualWidth, (int)ActualHeight);
     }
 
     protected override void OnClosed(EventArgs e)
     {
+        SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged;
         _hoverTimer.Stop();
         _tickTimer.Stop();
         if (_clipListening)
@@ -235,7 +236,7 @@ public partial class MainWindow : Window
         int added = 0;
         foreach (string f in files)
         {
-            if (TryMakeShortcut(f) is { } s && !ShortcutExists(s))
+            if (ShortcutFactory.TryCreate(f) is { } s && !ShortcutExists(s))
             {
                 _shortcuts.Add(s);
                 added++;
@@ -251,80 +252,13 @@ public partial class MainWindow : Window
     {
         if (!e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop)) return false;
         return (e.Data.GetData(System.Windows.DataFormats.FileDrop) as string[])?
-            .Any(f => IsDroppableExt(Path.GetExtension(f))) == true;
+            .Any(f => ShortcutFactory.IsDroppableExt(Path.GetExtension(f))) == true;
     }
-
-    private static bool IsDroppableExt(string ext) =>
-        ext.Equals(".exe", StringComparison.OrdinalIgnoreCase)
-        || ext.Equals(".lnk", StringComparison.OrdinalIgnoreCase)
-        || ext.Equals(".bat", StringComparison.OrdinalIgnoreCase)
-        || ext.Equals(".cmd", StringComparison.OrdinalIgnoreCase);
 
     private bool ShortcutExists(Shortcut s) =>
         _shortcuts.Any(x =>
             string.Equals(x.FileName, s.FileName, StringComparison.OrdinalIgnoreCase)
             && string.Equals(x.Arguments ?? "", s.Arguments ?? "", StringComparison.Ordinal));
-
-    /// <summary>Converte arquivo arrastado em Shortcut. .lnk é resolvido para o destino.</summary>
-    public static Shortcut? TryMakeShortcut(string path)
-    {
-        if (string.IsNullOrWhiteSpace(path) || !IsDroppableExt(Path.GetExtension(path)))
-            return null;
-        string name = Path.GetFileNameWithoutExtension(path);
-        string file = path, args = "", work = "";
-
-        if (Path.GetExtension(path).Equals(".lnk", StringComparison.OrdinalIgnoreCase)
-            && ResolveLnk(path) is { } r)
-        {
-            if (!string.IsNullOrWhiteSpace(r.Target)) file = r.Target;
-            args = r.Args;
-            work = r.WorkDir;
-        }
-
-        return new Shortcut
-        {
-            Name = string.IsNullOrWhiteSpace(name) ? "App" : name,
-            Icon = "📦", // usuário ajusta pela ⚙️
-            FileName = file,
-            Arguments = string.IsNullOrWhiteSpace(args) ? null : args,
-            WorkingDirectory = string.IsNullOrWhiteSpace(work) ? null : work,
-            Tooltip = $"Abrir {name}",
-        };
-    }
-
-    private static (string Target, string Args, string WorkDir)? ResolveLnk(string lnkPath)
-    {
-        // Sem dependências: WScript.Shell via COM (presente em todo Windows).
-        object? shell = null;
-        object? sc = null;
-        try
-        {
-            Type? t = Type.GetTypeFromProgID("WScript.Shell");
-            if (t == null) return null;
-            shell = Activator.CreateInstance(t);
-            if (shell == null) return null;
-            sc = shell.GetType().InvokeMember("CreateShortcut",
-                BindingFlags.InvokeMethod, null, shell, new object[] { lnkPath });
-            if (sc == null) return null;
-            string target = sc.GetType().InvokeMember("TargetPath",
-                BindingFlags.GetProperty, null, sc, null) as string ?? "";
-            string a = sc.GetType().InvokeMember("Arguments",
-                BindingFlags.GetProperty, null, sc, null) as string ?? "";
-            string w = sc.GetType().InvokeMember("WorkingDirectory",
-                BindingFlags.GetProperty, null, sc, null) as string ?? "";
-            // Alvo vazio = .lnk quebrado: chamador usa o próprio .lnk (abre pelo shell).
-            return (target, a, w);
-        }
-        catch { return null; }
-        finally
-        {
-            // Libera os RCWs para não vazar COM a cada arrasto.
-            if (sc != null)
-                try { System.Runtime.InteropServices.Marshal.ReleaseComObject(sc); } catch { }
-            if (shell != null)
-                try { System.Runtime.InteropServices.Marshal.ReleaseComObject(shell); } catch { }
-        }
-    }
 
     // ---------- aparência + ancoragem (4 cantos) ----------
 
@@ -344,11 +278,7 @@ public partial class MainWindow : Window
         CollapsedTab.Width = CollapsedTab.Height = _collapsedSize;
 
         // Pomodoro parado acompanha duração configurada.
-        if (!_pomoRunning && _pomoPhase == "idle")
-        {
-            _pomoRemaining = s.PomodoroFocusMin * 60;
-            UpdatePomoLabel();
-        }
+        _pomodoro.SyncIdleDuration(s.PomodoroFocusMin);
 
         ApplyLayoutCore();
         UpdatePagedView();
@@ -434,13 +364,10 @@ public partial class MainWindow : Window
         PomoRow.Visibility = _settings.ShowPomodoro ? Visibility.Visible : Visibility.Collapsed;
         ClipsButton.Visibility = _settings.ShowClips ? Visibility.Visible : Visibility.Collapsed;
 
-        if (!_settings.ShowPomodoro && _pomoRunning)
+        if (!_settings.ShowPomodoro && _pomodoro.Running)
         {
-            _pomoRunning = false;
-            _pomoPhase = "idle";
-            _pomoRemaining = _settings.PomodoroFocusMin * 60;
+            _pomodoro.Reset(_settings.PomodoroFocusMin);
             PomoButton.Content = "▶";
-            UpdatePomoLabel();
         }
 
         if (_settings.ShowClips && !_clipListening && _hwnd != IntPtr.Zero)
@@ -663,87 +590,21 @@ public partial class MainWindow : Window
     private void ClipsButton_Click(object sender, RoutedEventArgs e) =>
         ClipboardRequested?.Invoke();
 
-    // ---------- pomodoro ----------
+    // ---------- pomodoro (regras em PomodoroService; aqui só reflete estado) ----------
 
     private void PomoButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_pomoRunning)
-        {
-            _pomoRunning = false;
-            PomoButton.Content = "▶";
-        }
-        else
-        {
-            if (_pomoPhase == "idle") StartPomoPhase("focus");
-            _pomoRunning = true;
-            PomoButton.Content = "⏸";
-        }
+        _pomodoro.Toggle(_settings.PomodoroFocusMin);
+        PomoButton.Content = _pomodoro.Running ? "⏸" : "▶";
     }
 
     private void PomoLabel_Reset(object sender, MouseButtonEventArgs e)
     {
-        _pomoRunning = false;
-        _pomoPhase = "idle";
-        _pomoRemaining = _settings.PomodoroFocusMin * 60;
+        _pomodoro.Reset(_settings.PomodoroFocusMin);
         PomoButton.Content = "▶";
-        UpdatePomoLabel();
     }
 
-    private void StartPomoPhase(string phase)
-    {
-        _pomoPhase = phase;
-        _pomoRemaining = (phase == "focus"
-            ? _settings.PomodoroFocusMin
-            : _settings.PomodoroBreakMin) * 60;
-        UpdatePomoLabel();
-    }
-
-    private void OnPomoTick(object? sender, EventArgs e)
-    {
-        if (!_pomoRunning) return;
-        if (--_pomoRemaining > 0) { UpdatePomoLabel(); return; }
-
-        // Fase acabou: avisa (balloon + som) e já engata a próxima.
-        if (_pomoPhase == "focus")
-        {
-            AlertAsync(focusEnded: true);
-            PomodoroNotify?.Invoke("Hora da pausa! ☕",
-                $"Descanse por {_settings.PomodoroBreakMin} min.");
-            StartPomoPhase("break");
-        }
-        else
-        {
-            AlertAsync(focusEnded: false);
-            PomodoroNotify?.Invoke("De volta ao foco! 🍅",
-                $"Foco por {_settings.PomodoroFocusMin} min.");
-            StartPomoPhase("focus");
-        }
-    }
-
-    private void UpdatePomoLabel()
-    {
-        string icon = _pomoPhase == "break" ? "☕" : "🍅";
-        PomoLabel.Text = $"{icon} {_pomoRemaining / 60:D2}:{_pomoRemaining % 60:D2}";
-    }
-
-    /// <summary>Sons do sistema (sem console): fim do foco = 3x, fim da pausa = 2x.</summary>
-    private static void AlertAsync(bool focusEnded) =>
-        Task.Run(async () =>
-        {
-            try
-            {
-                var sound = focusEnded
-                    ? System.Media.SystemSounds.Asterisk
-                    : System.Media.SystemSounds.Exclamation;
-                int times = focusEnded ? 3 : 2;
-                for (int i = 0; i < times; i++)
-                {
-                    sound.Play();
-                    await Task.Delay(300);
-                }
-            }
-            catch { /* sem som, sem problema */ }
-        });
+    private void UpdatePomoLabel() => PomoLabel.Text = _pomodoro.LabelText;
 
     private void OnMonitorTick(object? sender, EventArgs e)
     {
