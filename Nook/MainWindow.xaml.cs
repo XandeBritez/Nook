@@ -471,6 +471,10 @@ public partial class MainWindow : Window
 
         if (expand)
         {
+            // Cancela o fade de um colapso interrompido (hover voltou no meio do caminho).
+            Card.BeginAnimation(OpacityProperty, null);
+            Card.Opacity = 1;
+
             // Mostra o conteúdo, mede a altura final e anima
             // largura + altura JUNTAS: abre na diagonal.
             Card.Visibility = Visibility.Visible;
@@ -486,10 +490,20 @@ public partial class MainWindow : Window
         else
         {
             // Congela a altura atual e encolhe os dois eixos juntos:
-            // fecha na diagonal em direção ao círculo.
+            // fecha na diagonal em direção ao círculo. O conteúdo não
+            // reduz junto (texto/botões têm tamanho fixo) — sem o fade,
+            // ele fica sendo "cortado" pela borda da janela encolhendo.
+            // Some por opacidade em paralelo pra esconder esse corte.
             Height = ActualHeight;
+            var fade = new DoubleAnimation(1, 0, new Duration(TimeSpan.FromMilliseconds(220)))
+            {
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn },
+            };
+            Card.BeginAnimation(OpacityProperty, fade);
             AnimateSize(_collapsedSize, _collapsedSize, onDone: () =>
             {
+                Card.BeginAnimation(OpacityProperty, null);
+                Card.Opacity = 1; // reseta pro próximo expand
                 if (_expanded) return; // reabriu no meio da animação
                 Card.Visibility = Visibility.Collapsed;
                 CollapsedTab.Visibility = Visibility.Visible;
