@@ -8,6 +8,11 @@
 
 **Seu cantinho na tela.** O Nook é um cartão flutuante que mora no canto do monitor com seus atalhos, monitor do PC, pomodoro, histórico da área de transferência e turbo — tudo sem pedir permissão de administrador. Passe o mouse e ele abre; tire o mouse e ele some.
 
+<p>
+  <img src="./screenshots/expandido.png" width="150" alt="Nook expandido, com os botões de atalho">
+  <img src="./screenshots/colapsado.png" width="150" alt="Nook colapsado, só o círculo no canto da tela">
+</p>
+
 ## ✨ Recursos
 
 - **Botões do seu jeito** — arraste `.exe`/`.lnk`/`.bat` para cima do cartão e vira botão; editor visual com nome, ícone (emoji), tooltip e ações embutidas.
@@ -41,6 +46,14 @@
 ### Ações embutidas
 
 Bloquear o PC • Mudo • Volume +/− • Print da tela • Gerenciador de tarefas • Alternar tema escuro/claro • Esvaziar lixeira • Suspender • Turbo • Reiniciar • Desligar.
+
+### Editor de configurações
+
+<p>
+  <img src="./screenshots/config-botoes.png" width="260" alt="Aba Botões: editor visual de atalhos">
+  <img src="./screenshots/config-emoji.png" width="260" alt="Seletor de ícones em grade">
+  <img src="./screenshots/config-aparencia.png" width="260" alt="Aba Aparência: tema, tamanho, canto, grade e opacidade">
+</p>
 
 ## ⚙️ Arquivos de configuração
 
